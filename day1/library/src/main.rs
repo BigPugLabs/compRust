@@ -29,7 +29,7 @@ impl std::fmt::Display for Book {
 
 impl Library {
     fn new() -> Library {
-        Library { books : vec![] }
+        Library { books : Vec::new() }
     }
 
     fn len(&self) -> usize {
@@ -37,7 +37,7 @@ impl Library {
     }
 
     fn is_empty(&self) -> bool {
-       self.books.len() == 0
+       self.books.is_empty()
     }
 
     fn add_book(&mut self, book: Book) {
@@ -51,17 +51,7 @@ impl Library {
     }
 
     fn oldest_book(&self) -> Option<&Book> {
-        if self.len() == 0 {
-            None
-        } else {
-            let mut oldest = &self.books[0];
-            for i in 1..self.len() {
-                if self.books[i].year < oldest.year {
-                    oldest = &self.books[i];
-                }
-            }
-            Some(oldest)
-        }
+        self.books.iter().min_by_key(|book| book.year)
     }
 }
 
