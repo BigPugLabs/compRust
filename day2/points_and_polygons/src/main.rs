@@ -66,7 +66,7 @@ impl Polygon {
             } else {
                 e.dist(self.points[0])
             }
-        }).fold(0.0, |a, b| a + b)
+        }).sum()
     }
 }
 
