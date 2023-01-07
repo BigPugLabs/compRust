@@ -36,6 +36,11 @@ impl User {
 fn main() {
     let bob = User::new(String::from("Bob"), 32, 155.2);
     println!("I'm {} and my age is {}", bob.name(), bob.age());
+    let mut bob2 = User::new(String::from("Bob2"), 35, 220.2);
+    println!("I'm {} and my age is {}", bob2.name(), bob2.age());
+    bob2.set_weight(210.2);
+    bob2.set_age(36);
+    println!("{}, {} has lost some weight and is now {}", bob2.name(), bob2.age(), bob2.weight());
 }
 
 #[test]
