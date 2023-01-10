@@ -5,13 +5,7 @@ pub fn prefix_matches(prefix: &str, request_path: &str) -> bool {
     let mut req = request_path.split("/");
     for p in prefix.split("/") {
         match req.next() {
-            Some(q) => {
-                if p == "*" {
-                    continue;
-                } else if p != q {
-                    return false
-                }
-            },
+            Some(q) => { if p != "*" && p != q { return false; }},
             None    => return false,
         }
     }
