@@ -1,4 +1,4 @@
-# compRust
+# comp_rust
 
 ## Comprehensive Rust
 
