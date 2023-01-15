@@ -62,44 +62,59 @@ impl Window {
 
 impl Widget for Label {
     fn width(&self) -> usize {
-        unimplemented!()
+        self.label
+            .lines()
+            .map(|line| line.chars().count())
+            .max()
+            .unwrap_or(0)
     }
 
     fn draw_into(&self, buffer: &mut dyn std::fmt::Write) {
-        writeln!(buffer, "- {} -", self.label).unwrap();
+        writeln!(buffer, "{}", self.label).unwrap();
     }
 }
 
 impl Widget for Button {
     fn width(&self) -> usize {
-        unimplemented!()
+        self.label.width()
     }
 
     fn draw_into(&self, buffer: &mut dyn std::fmt::Write) {
         let mut label = String::new();
         self.label.draw_into(&mut label);
-        
-        writeln!(buffer, "---------------").unwrap();
+
+        let width = self.width();
+        writeln!(buffer, "+-{}-+", "-".repeat(width)).unwrap();
         for line in label.lines() {
-            writeln!(buffer, "{}", line).unwrap();
+            writeln!(buffer, "| {: ^width$} |", line).unwrap();
         }
-        writeln!(buffer, "---------------").unwrap();
-        // write!(buffer, "| {} |", label).unwrap();
+        writeln!(buffer, "+-{}-+", "-".repeat(width)).unwrap();
     }
 }
 
 impl Widget for Window {
     fn width(&self) -> usize {
-        unimplemented!()
+        std::cmp::max(
+            self.title.chars().count(),
+            self.widgets.iter().map(|w| w.width()).max().unwrap_or(0),
+        ) + 4
     }
 
     fn draw_into(&self, buffer: &mut dyn std::fmt::Write) {
-        writeln!(buffer, "==========\n{}\n==========", self.title).unwrap();
+        let width = self.width();
+        writeln!(buffer, "+-{}-+", "-".repeat(width)).unwrap();
+        for line in self.title.lines() {
+            writeln!(buffer, "| {: ^width$} |", line).unwrap();
+        }
+        writeln!(buffer, "+={}=+", "=".repeat(width)).unwrap();
         let mut children = String::new();
         for widget in &self.widgets {
             widget.draw_into(&mut children);
         }
-        writeln!(buffer, "{}", children).unwrap();
+        for line in children.lines() {
+            writeln!(buffer, "| {:width$} |", line).unwrap();
+        }
+        writeln!(buffer, "+-{}-+", "-".repeat(width)).unwrap();
     }
 }
 
@@ -110,6 +125,13 @@ fn main() {
         "Click me!",
         Box::new(|| println!("You clicked the button!")),
     )));
+    window.add_widget(Box::new(Button::new(
+        "This\nIS\nTaller",
+        Box::new(|| println!("foo")),
+    )));
+    window.add_widget(Box::new(Button::new(
+        "This\nIS\nTaller            and                 much        wider",
+        Box::new(|| println!("foo")),
+    )));
     window.draw();
 }
-
