@@ -46,14 +46,18 @@ impl DirectoryIterator {
         let c_path_result = CString::new(path);
         let c_path = match c_path_result {
             Ok(path) => path,
-            Err(e) => return Err(format!("{e}")),
+            Err(e) => return Err(format!("Invalid path: {e}")),
         };
 
         let dir_status = unsafe { opendir(c_path.as_ptr()) };
-        Ok(DirectoryIterator {
-            path: c_path,
-            dir: dir_status,
-        })
+        if dir_status.is_null() {
+            Err(format!("Could not open {:?}", path))
+        } else {
+            Ok(DirectoryIterator {
+                path: c_path,
+                dir: dir_status,
+            })
+        }
     }
 }
 
@@ -63,7 +67,7 @@ impl Iterator for DirectoryIterator {
         // Keep calling readdir until we get a NULL pointer back.
         let res = unsafe { readdir(self.dir) };
         let c_string = match res.is_null() {
-            false => unsafe {CStr::from_ptr((*res).d_name.as_ptr())},
+            false => unsafe { CStr::from_ptr((*res).d_name.as_ptr()) },
             true => return None,
         };
         match c_string.to_str() {
@@ -76,7 +80,11 @@ impl Iterator for DirectoryIterator {
 impl Drop for DirectoryIterator {
     fn drop(&mut self) {
         // Call closedir as needed.
-        unsafe { closedir(self.dir) };
+        if !self.dir.is_null() {
+            if unsafe { closedir(self.dir) } != 0 {
+                panic!("Could not close {:?}", self.path);
+            }
+        }
     }
 }
 
