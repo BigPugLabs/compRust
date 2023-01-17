@@ -21,21 +21,21 @@ impl Philosopher {
 
     fn eat(&self) {
         // Pick up forks...
-        let left_lock = self.left_fork.try_lock();
-        let right_lock = self.right_fork.try_lock();
-        match (left_lock, right_lock) {
-            (Ok(_), Ok(_)) => println!("{} is eating...", &self.name),
-            (Ok(_), _) => {
-                println!("{} is missing a right fork...", &self.name);
-                self.think();
+        println!("{} is trying to eat", &self.name);
+        let mut locked = false;
+
+        while !locked {
+            let left_lock = self.left_fork.try_lock();
+            let right_lock = self.right_fork.try_lock();
+            match (left_lock, right_lock) {
+                (Ok(_), Ok(_)) => {
+                    println!("{} is eating...", &self.name);
+                    locked = true;
+                }
+                (_, _) => thread::sleep(Duration::from_millis(1)),
             }
-            (_, Ok(_)) => {
-                println!("{} is missing a left fork...", &self.name);
-                self.think();
-            }
-            (_, _) => self.think(),
         }
-        thread::sleep(Duration::from_millis(100));
+        thread::sleep(Duration::from_millis(10));
     }
 }
 
@@ -65,12 +65,16 @@ fn main() {
 
     // Make them think and eat
     for phil in philosophers {
-        thread::spawn(move || loop {
-            phil.eat();
+        thread::spawn(move || {
+            for _ in 0..100 {
+                phil.eat();
+                phil.think();
+            }
         });
     }
 
     // Output their thoughts
+    drop(tx);
     for thought in rx.iter() {
         println!("{thought}");
     }
